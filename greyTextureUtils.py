@@ -49,11 +49,19 @@ def save_image_to_bin_files_80x50(file_path, num_of_cols):
         bin_file.write(bytearray(cbf))
 
 
-def save_images_to_bin_files_80x50(textures_dir, extension):
-    files_in_path = [x for x in os.listdir(textures_dir) if x.endswith(extension)]
-    for src_file in files_in_path:
-        full_src_file_path = os.path.join(textures_dir, src_file)
-        save_image_to_bin_files_80x50(full_src_file_path)
+def merge_two_color_ram_data_segments(main, stash):
+    return [m | (s << 4) for m, s in zip(main, stash)]
+
+
+def create_campaign_bin_files(start_address_in_io, start_address_in_color_ram_textures, srs, crs):
+    # returns both campaign.bin file and level1 textures in folders, color ram data merged
+    pass
+
+# def save_images_to_bin_files_80x50(textures_dir, extension):
+#     files_in_path = [x for x in os.listdir(textures_dir) if x.endswith(extension)]
+#     for src_file in files_in_path:
+#         full_src_file_path = os.path.join(textures_dir, src_file)
+#         save_image_to_bin_files_80x50(full_src_file_path)
 
 
 if __name__ == '__main__':

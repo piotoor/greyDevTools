@@ -26,3 +26,19 @@ class GreyTextureUtilsTests(unittest.TestCase):
     def test_convert_image_to_bin_80x50_colorDoorStripes(self, _, path, expected):
         curr_img = Image.open(path)
         self.assertEqual(expected, greyTextureUtils.convert_image_to_bin_80x50(curr_img, 6))
+
+    @parameterized.expand([
+        ("test1",
+         (
+                 [11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,  6,
+                  6,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1],
+                 [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
+                  13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14]
+         ),
+            [0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xab, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6,
+             0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 0xd6, 0xe1, 0xe1, 0xe1, 0xe1, 0xe1, 0xe1, 0xe1, 0xe1, 0xe1, 0xe1,
+             0xe1, 0xe1, 0xe1]
+         )
+    ])
+    def test_merge_two_color_ram_data_segments(self, _, data, expected):
+        self.assertEqual(expected, greyTextureUtils.merge_two_color_ram_data_segments(data[0], data[1]))
