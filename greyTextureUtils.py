@@ -75,9 +75,9 @@ def generate_texture_dark_transition_map(light, dark):
         elif ans[hi_nibble_light] != hi_nibble_dark:
             raise RuntimeError("Inconsistent light-dark texture relation. Can't generate a dark transition vector")
     
-        if ans[light_cr] == light_cr:
-            ans[light_cr] = dark_cr
-        elif ans[light_cr] != dark_cr:
+        if ans[light_cr[i]] == light_cr[i]:
+            ans[light_cr[i]] = dark_cr[i]
+        elif ans[light_cr[i]] != dark_cr[i]:
             raise RuntimeError("Inconsistent light-dark texture relation. Can't generate a dark transition vector")
 
     return ans
