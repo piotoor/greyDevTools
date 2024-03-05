@@ -8,8 +8,8 @@ import argparse
 DST_EXTENSION = ".bin"
 
 
-def convert_image_to_bin_80x50(input_img, num_of_cols=32):
-    pixels = np.array(list(input_img.getdata())).reshape((26, num_of_cols))[:26]
+def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
+    pixels = np.array(list(input_img.getdata())).reshape((num_of_rows, num_of_cols))[:num_of_rows]
     print("pixels raw = {}".format(pixels))
     screen_buffer_pixels = []
     color_buffer_pixels = []
@@ -19,8 +19,8 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32):
             screen_buffer_pixels.append((pixels[r + 1][c] << 4) | pixels[r + 1][c + 1])
             color_buffer_pixels.append(pixels[r][c + 1])
 
-    sb = np.array(screen_buffer_pixels).reshape(13, num_of_cols // 2)
-    cb = np.array(color_buffer_pixels).reshape(13, num_of_cols // 2)
+    sb = np.array(screen_buffer_pixels).reshape(num_of_rows // 2, num_of_cols // 2)
+    cb = np.array(color_buffer_pixels).reshape(num_of_rows // 2, num_of_cols // 2)
     print("separated: \n{}\n\n{}".format(sb, cb))
 
     bin_screen_buffer = sb.transpose().flatten().tolist()
@@ -29,13 +29,13 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32):
     return bin_screen_buffer, bin_color_buffer
 
 
-def save_image_to_bin_files_80x50(file_path, num_of_cols):
+def save_image_to_bin_files_80x50(file_path, num_of_cols, num_of_rows):
     print("Processing {}".format(file_path))
     curr_img = Image.open(file_path)
     head, tail = os.path.split(file_path)
     src_file_name, ext = os.path.splitext(tail)
 
-    sbf, cbf = convert_image_to_bin_80x50(curr_img, num_of_cols)
+    sbf, cbf = convert_image_to_bin_80x50(curr_img, num_of_cols, num_of_rows)
     print("bins: \n {} \n {}".format(sbf, cbf))
     sbf_bin_file_path = os.path.join(head, "..", src_file_name) + DST_EXTENSION
     cbf_bin_file_path = os.path.join(head, "..", src_file_name + "_b") + DST_EXTENSION
@@ -53,8 +53,59 @@ def merge_two_color_ram_data_segments(main, stash):
     return [m | (s << 4) for m, s in zip(main, stash)]
 
 
-def create_campaign_bin_files(start_address_in_io, start_address_in_color_ram_textures, srs, crs):
-    # returns both campaign.bin file and level1 textures in folders, color ram data merged
+def generate_texture_dark_transition_map(light, dark):
+    light_sr, light_cr = light
+    dark_sr, dark_cr = dark
+
+    ans = [i for i in range(16)]
+
+    for i in range(len(light_sr)):
+        lo_nibble_light = light_sr[i] & 0x0f
+        hi_nibble_light = light_sr[i] >> 4
+        lo_nibble_dark = dark_sr[i] & 0x0f
+        hi_nibble_dark = dark_sr[i] >> 4
+
+        if ans[lo_nibble_light] == lo_nibble_light:
+            ans[lo_nibble_light] = lo_nibble_dark
+        elif ans[lo_nibble_light] != lo_nibble_dark:
+            raise RuntimeError("Inconsistent light-dark texture relation. Can't generate a dark transition vector")
+
+        if ans[hi_nibble_light] == hi_nibble_light:
+            ans[hi_nibble_light] = hi_nibble_dark
+        elif ans[hi_nibble_light] != hi_nibble_dark:
+            raise RuntimeError("Inconsistent light-dark texture relation. Can't generate a dark transition vector")
+    
+        if ans[light_cr] == light_cr:
+            ans[light_cr] = dark_cr
+        elif ans[light_cr] != dark_cr:
+            raise RuntimeError("Inconsistent light-dark texture relation. Can't generate a dark transition vector")
+
+    return ans
+
+
+NUM_OF_WALL_TEXTURES_IN_MAIN_RAM = 3
+
+
+def create_textures_bin_data(start_address_in_io, srs_common_wall, srs_level_walls, srs_door, crs_common_wall, crs_level_walls, crs_door):
+    # srs & crs walls = L00, L01, L10, L11, L20, L21
+    # compressedScreenRamLevel234Textures.bin format:
+    # levels| lev sr start addr | data
+    # 2 3 4 | LB HB LB HB LB HB | screen ram data
+
+    
+
+
+    level1_screen_ram_textures = [srs_walls[i] for i in range(6)]
+    level1_color_ram_textures_merged_with_stash = []
+    level234_bin = [2, 3, 4, ]
+
+    for i in range(3):
+        level1_color_ram_textures_merged_with_stash.append(merge_two_color_ram_data_segments(crs_walls[i], crs_walls[i + NUM_OF_WALL_TEXTURES_IN_MAIN_RAM]))
+
+    return level1_screen_ram_textures, srs_door, level1_color_ram_textures_merged_with_stash, crs_door, level234_bin
+
+
+def save_textures_bin_data(data, path):
     pass
 
 # def save_images_to_bin_files_80x50(textures_dir, extension):
@@ -89,4 +140,4 @@ if __name__ == '__main__':
     #                     action='store_true')
     args = parser.parse_args()
 
-    save_image_to_bin_files_80x50(args.path, 6)
+    save_image_to_bin_files_80x50(args.path, 32, 26)
