@@ -4,13 +4,13 @@ from PIL import Image
 import numpy as np
 import os
 import argparse
-
+import itertools
 DST_EXTENSION = ".bin"
 
 
 def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
     pixels = np.array(list(input_img.getdata())).reshape((num_of_rows, num_of_cols))[:num_of_rows]
-    print("pixels raw = {}".format(pixels))
+    # print("pixels raw = {}".format(pixels))
     screen_buffer_pixels = []
     color_buffer_pixels = []
 
@@ -21,7 +21,7 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
 
     sb = np.array(screen_buffer_pixels).reshape(num_of_rows // 2, num_of_cols // 2)
     cb = np.array(color_buffer_pixels).reshape(num_of_rows // 2, num_of_cols // 2)
-    print("separated: \n{}\n\n{}".format(sb, cb))
+    # print("separated: \n{}\n\n{}".format(sb, cb))
 
     bin_screen_buffer = sb.transpose().flatten().tolist()
     bin_color_buffer = cb.transpose().flatten().tolist()
@@ -29,24 +29,28 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
     return bin_screen_buffer, bin_color_buffer
 
 
-def save_image_to_bin_files_80x50(file_path, num_of_cols, num_of_rows):
-    print("Processing {}".format(file_path))
-    curr_img = Image.open(file_path)
-    head, tail = os.path.split(file_path)
-    src_file_name, ext = os.path.splitext(tail)
+def write_to_bin_file(out_path, data):
+    try:
+        with open(out_path, 'wb') as bin_file:
+            try:
+                # print("Saving {}...".format(sbf))
+                bin_file.write(bytearray(data))
+            except (IOError, OSError):
+                print("Error writing to file")
+    except (FileNotFoundError, PermissionError, OSError) as e:
+        print("Error opening file: ", e)
 
-    sbf, cbf = convert_image_to_bin_80x50(curr_img, num_of_cols, num_of_rows)
-    print("bins: \n {} \n {}".format(sbf, cbf))
-    sbf_bin_file_path = os.path.join(head, "..", src_file_name) + DST_EXTENSION
-    cbf_bin_file_path = os.path.join(head, "..", src_file_name + "_b") + DST_EXTENSION
 
-    with open(sbf_bin_file_path, 'wb') as bin_file:
-        print("Saving {}...".format(sbf_bin_file_path))
-        bin_file.write(bytearray(sbf))
+def save_sr_cr_bins_to_file_common(src_path, dst_path, bins):
+    head, tail = os.path.split(src_path)
+    fn, ext = os.path.splitext(tail)
+    out_file_name_stem = os.path.join(dst_path, fn)
 
-    with open(cbf_bin_file_path, 'wb') as bin_file:
-        print("Saving {}...".format(cbf_bin_file_path))
-        bin_file.write(bytearray(cbf))
+    sbf, cbf = bins
+    # print("saving bins: \n {} \n {}".format(sbf, cbf))
+
+    write_to_bin_file(out_file_name_stem + "_screenRam" + DST_EXTENSION, sbf)
+    write_to_bin_file(out_file_name_stem + "_colorRam" + DST_EXTENSION, cbf)
 
 
 def merge_two_color_ram_data_segments(main, stash):
@@ -86,37 +90,160 @@ def generate_texture_dark_transition_map(light, dark):
 NUM_OF_WALL_TEXTURES_IN_MAIN_RAM = 3
 
 
-def create_textures_bin_data(start_address_in_io, srs_common_wall, srs_level_walls, srs_door, crs_common_wall, crs_level_walls, crs_door):
-    # srs & crs walls = L00, L01, L10, L11, L20, L21
-    # compressedScreenRamLevel234Textures.bin format:
-    # levels| lev sr start addr | data
-    # 2 3 4 | LB HB LB HB LB HB | screen ram data
+# textures
+#   bin
+#       door_sr.bin
+#       common_light_sr.bin
+#       common_dark_sr.bin
+#       level1_0_light_sr.bin
+#       level1_0_dark_sr.bin
+#       level1_1_light_sr.bin
+#       level1_1_dark_sr.bin
+#       door_cr.bin
+#
+#       common_light_cr.bin         + level2_0_cr
+#       common_dark_cr.bin          + level2_1_cr
+#       level1_0_light_cr.bin       + level3_0_cr
+#       level1_0_dark_cr.bin        + level3_1_cr
+#       level1_1_light_cr.bin       + level4_0_cr
+#       level1_1_dark_cr.bin        + level4_1_cr
+#
+#       levels234_compressed.bin
+#   common
+#   level1
+#   level2
+#   level3
+#   level4
+#
+def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_cols, tex_rows):
+    root_dir = path
 
-    
+    door_stripes_path = os.path.join(root_dir, "common", "keyDoorColorStripes.tga")
+    paths = [
+        os.path.join(root_dir, "common", "doorTexture.tga"),
+        os.path.join(root_dir, "common", "commonTextureLight.tga"),
+        os.path.join(root_dir, "common", "commonTextureDark.tga"),
+
+        os.path.join(root_dir, "level1", "level1Texture0Light.tga"),  # 3
+        os.path.join(root_dir, "level1", "level1Texture0Dark.tga"),
+        os.path.join(root_dir, "level1", "level1Texture1Light.tga"),
+        os.path.join(root_dir, "level1", "level1Texture1Dark.tga"),
+
+        os.path.join(root_dir, "level2", "level2Texture0Light.tga"),  # 7
+        os.path.join(root_dir, "level2", "level2Texture0Dark.tga"),
+        os.path.join(root_dir, "level2", "level2Texture1Light.tga"),
+        os.path.join(root_dir, "level2", "level2Texture1Dark.tga"),
+
+        os.path.join(root_dir, "level3", "level3Texture0Light.tga"),  # 11
+        os.path.join(root_dir, "level3", "level3Texture0Dark.tga"),
+        os.path.join(root_dir, "level3", "level3Texture1Light.tga"),
+        os.path.join(root_dir, "level3", "level3Texture1Dark.tga"),
+
+        os.path.join(root_dir, "level4", "level4Texture0Light.tga"),  # 15
+        os.path.join(root_dir, "level4", "level4Texture0Dark.tga"),
+        os.path.join(root_dir, "level4", "level4Texture1Light.tga"),
+        os.path.join(root_dir, "level4", "level4Texture1Dark.tga")
+    ]
+
+    try:
+        door_stripes_image = Image.open(door_stripes_path)
+        images = [Image.open(path) for path in paths]
+    except (FileNotFoundError, IOError, OSError) as e:
+        print("Error: ", e)
+    else:
+        door_stripes_bin = convert_image_to_bin_80x50(door_stripes_image, stripes_cols, stripes_rows)
+        bins = [convert_image_to_bin_80x50(img, tex_cols, tex_rows) for img in images]
+        output_path = os.path.join(root_dir, "bin")
+
+        # door stripes sr & cr
+        save_sr_cr_bins_to_file_common(door_stripes_path, output_path, door_stripes_bin)
+        # door sr
+        darkening_luts = generate_darkening_luts([
+            (bins[i], bins[i + 1]) for i in range(1, 18, 2)
+        ])
+
+        if tex_cols == 16 and tex_rows == 13:
+            door_cr_merged_with_rec_vect = merge_two_color_ram_data_segments(bins[0][1], list(itertools.chain(*darkening_luts)) + [0] * 64)
+            save_sr_cr_bins_to_file_common(paths[0], output_path, (bins[0][0], door_cr_merged_with_rec_vect))
+        else:
+            save_sr_cr_bins_to_file_common(paths[0], output_path, bins[0])
 
 
-    level1_screen_ram_textures = [srs_walls[i] for i in range(6)]
-    level1_color_ram_textures_merged_with_stash = []
-    level234_bin = [2, 3, 4, ]
 
-    for i in range(3):
-        level1_color_ram_textures_merged_with_stash.append(merge_two_color_ram_data_segments(crs_walls[i], crs_walls[i + NUM_OF_WALL_TEXTURES_IN_MAIN_RAM]))
+        # common light sr
+        cl_sr, cl_cr = bins[1]
+        l20l_sr, l20l_cr = bins[7]
+        save_sr_cr_bins_to_file_common(paths[1], output_path, (cl_sr, merge_two_color_ram_data_segments(cl_cr, l20l_cr)))
 
-    return level1_screen_ram_textures, srs_door, level1_color_ram_textures_merged_with_stash, crs_door, level234_bin
+        # common dark sr
+        cd_sr, cd_cr = bins[2]
+        l21l_sr, l21l_cr = bins[9]
+        save_sr_cr_bins_to_file_common(paths[2], output_path, (cd_sr, merge_two_color_ram_data_segments(cd_cr, l21l_cr)))
+
+        # level 1 0 light sr
+        l10l_sr, l10l_cr = bins[3]
+        l30l_sr, l30l_cr = bins[11]
+        save_sr_cr_bins_to_file_common(paths[3], output_path, (l10l_sr, merge_two_color_ram_data_segments(l10l_cr, l30l_cr)))
+
+        # level 1 0 dark sr
+        l10d_sr, l10d_cr = bins[4]
+        l31l_sr, l31l_cr = bins[13]
+        save_sr_cr_bins_to_file_common(paths[4], output_path, (l10d_sr, merge_two_color_ram_data_segments(l10d_cr, l31l_cr)))
+
+        # level 1 1 light sr
+        l11l_sr, l11l_cr = bins[5]
+        l40l_sr, l40l_cr = bins[15]
+        save_sr_cr_bins_to_file_common(paths[5], output_path, (l11l_sr, merge_two_color_ram_data_segments(l11l_cr, l40l_cr)))
+
+        # level 1 1 dark sr
+        l11d_sr, l11d_cr = bins[6]
+        l41l_sr, l41l_cr = bins[17]
+        save_sr_cr_bins_to_file_common(paths[6], output_path, (l11d_sr, merge_two_color_ram_data_segments(l11d_cr, l41l_cr)))
+
+        # add texpack generator here + darkening luts
+        first_tex_start_offset = 3 + 12
+        texture_pack = [
+            2, 3, 4,
+            first_tex_start_offset & 0xff,
+            (first_tex_start_offset >> 8) & 0xff,
+
+            (first_tex_start_offset + 208) & 0xff,
+            ((first_tex_start_offset + 208) >> 8) & 0xff,
+
+            (first_tex_start_offset + 208 * 2) & 0xff,
+            ((first_tex_start_offset + 208 * 2) >> 8) & 0xff,
+
+            (first_tex_start_offset + 208 * 3) & 0xff,
+            ((first_tex_start_offset + 208 * 3) >> 8) & 0xff,
+
+            (first_tex_start_offset + 208 * 4) & 0xff,
+            ((first_tex_start_offset + 208 * 4) >> 8) & 0xff,
+
+            (first_tex_start_offset + 208 * 5) & 0xff,
+            ((first_tex_start_offset + 208 * 5) >> 8) & 0xff,
+        ] + bins[7][0] + bins[9][0] + bins[11][0] + bins[13][0] + bins[15][0] + bins[17][0]
+
+        print(texture_pack, len(texture_pack))
+        write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
+
+#     3             12                       208 * 6 = 1248         1263
+#   order | tex starting offsets    | textures data           |
+#   2 3 4 | L H L H L H L H L H L H | L20 L21 L30 L31 L40 L41 |
+#
 
 
-def save_textures_bin_data(data, path):
-    pass
+def generate_darkening_luts(texture_pairs):
+    ans = []
+    for light, dark in texture_pairs:
+        ans.append(generate_texture_dark_transition_map(light, dark))
 
-# def save_images_to_bin_files_80x50(textures_dir, extension):
-#     files_in_path = [x for x in os.listdir(textures_dir) if x.endswith(extension)]
-#     for src_file in files_in_path:
-#         full_src_file_path = os.path.join(textures_dir, src_file)
-#         save_image_to_bin_files_80x50(full_src_file_path)
+    for x in ans:
+        print(x)
+    return ans
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
+    # parser = argparse.ArgumentParser()
     # parser.add_argument('-F', '--fli',
     #                     required=False,
     #                     dest='fli',
@@ -133,11 +260,17 @@ if __name__ == '__main__':
     #                     required=False,
     #                     dest='full_size',
     #                     action='store_true')
-    parser.add_argument('path',
-                        type=str)
+
+
+
+    # parser.add_argument('path',
+    #                     type=str)
+
+
+
     # parser.add_argument('-c', '--key-door-columns',
     #                     required=False,
     #                     action='store_true')
-    args = parser.parse_args()
+    # args = parser.parse_args()
 
-    save_image_to_bin_files_80x50(args.path, 32, 26)
+    read_and_convert_to_bin_all_textures("./greyTextureUtilsTestData", 2, 4, 4, 4)

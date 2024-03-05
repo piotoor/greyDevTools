@@ -2,7 +2,7 @@ import unittest
 from parameterized import parameterized
 import greyTextureUtils
 from PIL import Image
-
+import os
 
 class GreyTextureUtilsTests(unittest.TestCase):
     @parameterized.expand([
@@ -90,3 +90,69 @@ class GreyTextureUtilsTests(unittest.TestCase):
             _ = greyTextureUtils.generate_texture_dark_transition_map(light_bin, dark_bin)
 
         self.assertTrue(expected in str(context.exception))
+
+    def test_read_and_convert_to_bin_all_textures(self):
+        raised = False
+        try:
+            greyTextureUtils.read_and_convert_to_bin_all_textures("./greyTextureUtilsTestData", 2, 4, 4, 4)
+        except RuntimeError as e:
+            print("Error: ", e)
+            raised = True
+        else:
+            filenames = [
+                "commonTextureDark_colorRam.bin",
+                "commonTextureDark_screenRam.bin",
+                "commonTextureLight_colorRam.bin",
+                "commonTextureLight_screenRam.bin",
+                "doorTexture_colorRam.bin",
+                "doorTexture_screenRam.bin",
+                "keyDoorColorStripes_colorRam.bin",
+                "keyDoorColorStripes_screenRam.bin",
+                "level1Texture0Dark_colorRam.bin",
+                "level1Texture0Dark_screenRam.bin",
+                "level1Texture0Light_colorRam.bin",
+                "level1Texture0Light_screenRam.bin",
+                "level1Texture1Dark_colorRam.bin",
+                "level1Texture1Dark_screenRam.bin",
+                "level1Texture1Light_colorRam.bin",
+                "level1Texture1Light_screenRam.bin",
+                "texturePack.bin"
+            ]
+            expects = [
+                [0xe2, 0xe2, 0xef, 0xef],
+                [0xb2, 0xb2, 0xbf, 0xbf],
+                [0xda, 0xda, 0x31, 0x31],
+                [0xfa, 0xfa, 0xf1, 0xf1],
+                [0x02, 0x02, 0x01, 0x02],
+                [0x22, 0x22, 0x11, 0x11],
+                [0x02, 0x02],
+                [0x25, 0x25],
+                [0xa2, 0xa2, 0xa3, 0xa3],
+                [0x33, 0x33, 0x22, 0x22],
+                [0x8a, 0x8a, 0x8e, 0x8e],
+                [0xee, 0xee, 0xaa, 0xaa],
+                [0xf2, 0xb2, 0xb2, 0xf2],
+                [0x33, 0x33, 0x33, 0x33],
+                [0xea, 0xea, 0xaa, 0xaa],
+                [0x33, 0x33, 0x33, 0x33],
+                [
+                    2, 3, 4,
+                    15, 0, 223, 0, 175, 1, 127, 2, 79, 3, 31, 4,
+                    221, 221, 51, 51, 235, 235, 235, 235, 17, 24, 129, 17, 170, 170, 170, 170, 218, 218, 218, 218, 255, 187, 187, 255
+                ]
+            ]
+            try:
+                for filename, expected in zip(filenames, expects):
+                    with open(os.path.join("greyTextureUtilsTestData", "bin", filename), mode="rb") as f:
+                        try:
+                            data = list(f.read())
+                            self.assertEqual(expected, data)
+                        except (IOError, OSError) as e:
+                            print("Error: ", e)
+                            raised = True
+                        else:
+                            pass
+            except (FileNotFoundError, PermissionError, OSError) as e:
+                print("Error opening file: ", e)
+                raised = True
+        self.assertFalse(raised, 'Exception raised')
