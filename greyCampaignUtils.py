@@ -132,8 +132,8 @@ if __name__ == '__main__':
     parser.add_argument("path", type=str)
     args = parser.parse_args()
 
-    data = []
-    utilities.read_from_bin_file(args.path, data)
+    data = utilities.read_from_bin_file(args.path)
+    # print(data)
     filename = os.path.splitext(args.path)
     out_path = filename[0] + "_compressed" + filename[1]
     try:
