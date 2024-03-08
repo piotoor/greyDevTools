@@ -2,8 +2,9 @@
 
 import argparse
 import os
-
 import utilities
+from utilities import greyLogger
+import logging
 
 scaledFrameData = (
     (0, 63),
@@ -27,6 +28,7 @@ scaledFrameDataResolution = (
 
 
 def compress_sprite_set_empty_removal(sprite_set, skip_initial_frame):
+    greyLogger.debug("start")
     raw_sprite_set = list(sprite_set[3:])
     sprite_set_size = len(raw_sprite_set)
     parsed_size = 64 if skip_initial_frame else 0
@@ -42,6 +44,7 @@ def compress_sprite_set_empty_removal(sprite_set, skip_initial_frame):
         parsed_size += 64
         frame_id += 1
 
+    greyLogger.debug("end")
     return compressed_sprites
 
 
@@ -129,13 +132,17 @@ def compress_sprite_set_empty_removal(sprite_set, skip_initial_frame):
 
 
 if __name__ == '__main__':
+    greyLogger.debug("start")
     parser = argparse.ArgumentParser()
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-e', action='store_true', help="sprite compression remove empty bytes")
-    group.add_argument('-s', action='store_true', help="skip first frame")
+    parser.add_argument('-s', action='store_true', help="skip first frame")
     parser.add_argument("path", type=str)
+    parser.add_argument('-d', action='store_true', help="enables debugging")
     args = parser.parse_args()
 
+    if args.d:
+        greyLogger.setLevel(level=logging.DEBUG)
     if args.e:
         data = utilities.read_from_bin_file(args.path)
         filename = os.path.splitext(args.path)
@@ -147,3 +154,4 @@ if __name__ == '__main__':
         # print("len(compressed_sprite_set) = {}".format(len(compressed_sprite_set)))
         output_path = filename[0] + "_compressed.bin"
         utilities.write_to_bin_file(output_path, compressed_sprite_set)
+    greyLogger.debug("end")

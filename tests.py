@@ -3,7 +3,10 @@ from parameterized import parameterized
 import greyTextureUtils
 from PIL import Image
 import os
+import logging
+from utilities import greyLogger
 
+greyLogger.setLevel(level=logging.ERROR)
 
 class GreyTextureUtilsTests(unittest.TestCase):
     @parameterized.expand([

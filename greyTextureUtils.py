@@ -1,14 +1,18 @@
 #!/usr/bin/env python3.10
+import logging
 
 from PIL import Image
 import numpy as np
 import os
 import itertools
 import utilities
+import argparse
+from utilities import greyLogger
 DST_EXTENSION = ".bin"
 
 
 def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
+    greyLogger.debug("start")
     pixels = np.array(list(input_img.getdata())).reshape((num_of_rows, num_of_cols))[:num_of_rows]
     # print("pixels raw = {}".format(pixels))
     screen_buffer_pixels = []
@@ -26,10 +30,12 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
     bin_screen_buffer = sb.transpose().flatten().tolist()
     bin_color_buffer = cb.transpose().flatten().tolist()
 
+    greyLogger.debug("end")
     return bin_screen_buffer, bin_color_buffer
 
 
 def save_sr_cr_bins_to_file_common(src_path, dst_path, bins):
+    greyLogger.debug("start")
     head, tail = os.path.split(src_path)
     fn, ext = os.path.splitext(tail)
     out_file_name_stem = os.path.join(dst_path, fn)
@@ -39,13 +45,17 @@ def save_sr_cr_bins_to_file_common(src_path, dst_path, bins):
 
     utilities.write_to_bin_file(out_file_name_stem + "_screenRam" + DST_EXTENSION, sbf)
     utilities.write_to_bin_file(out_file_name_stem + "_colorRam" + DST_EXTENSION, cbf)
+    greyLogger.debug("end")
 
 
 def merge_two_color_ram_data_segments(main, stash):
+    greyLogger.debug("start")
+    greyLogger.debug("end")
     return [m | (s << 4) for m, s in zip(main, stash)]
 
 
 def generate_texture_dark_transition_map(light, dark):
+    greyLogger.debug("start")
     light_sr, light_cr = light
     dark_sr, dark_cr = dark
 
@@ -72,6 +82,7 @@ def generate_texture_dark_transition_map(light, dark):
         elif ans[light_cr[i]] != dark_cr[i]:
             raise RuntimeError("Inconsistent light-dark texture relation. Can't generate a dark transition vector")
 
+    greyLogger.debug("end")
     return ans
 
 
@@ -104,6 +115,7 @@ NUM_OF_WALL_TEXTURES_IN_MAIN_RAM = 3
 #   level4
 #
 def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_cols, tex_rows):
+    greyLogger.debug("start")
     root_dir = path
 
     door_stripes_path = os.path.join(root_dir, "common", "keyDoorColorStripes.tga")
@@ -137,7 +149,7 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
         door_stripes_image = Image.open(door_stripes_path)
         images = [Image.open(path) for path in paths]
     except (FileNotFoundError, IOError, OSError) as e:
-        print("Error: ", e)
+        greyLogger.error(e)
     else:
         door_stripes_bin = convert_image_to_bin_80x50(door_stripes_image, stripes_cols, stripes_rows)
         bins = [convert_image_to_bin_80x50(img, tex_cols, tex_rows) for img in images]
@@ -218,6 +230,7 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
 
         # print(texture_pack, len(texture_pack))
         utilities.write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
+        greyLogger.debug("end")
 
 #     3             12                       208 * 6 = 1248         1263
 #   order | tex starting offsets    | textures data           |
@@ -226,12 +239,12 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
 
 
 def generate_darkening_luts(texture_pairs):
+    greyLogger.debug("start")
     ans = []
     for light, dark in texture_pairs:
         ans.append(generate_texture_dark_transition_map(light, dark))
 
-    # for x in ans:
-    #     print(x)
+    greyLogger.debug("end")
     return ans
 
 
@@ -242,5 +255,13 @@ TEXTURE_NO_OF_ROWS = 26
 
 
 if __name__ == '__main__':
+    greyLogger.debug("start")
+    parser = argparse.ArgumentParser()
+    group = parser.add_mutually_exclusive_group()
+    parser.add_argument('-d', action='store_true', help="enables debugging")
+    args = parser.parse_args()
+    if args.d:
+        greyLogger.setLevel(level=logging.DEBUG)
     read_and_convert_to_bin_all_textures("./greyTextureUtilsTestData", DOOR_STRIPES_NO_OF_COLUMNS,
                                          DOOR_STRIPES_NO_OF_ROWS, TEXTURE_NO_OF_COLUMNS, TEXTURE_NO_OF_ROWS)
+    greyLogger.debug("end")
