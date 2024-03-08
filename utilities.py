@@ -24,9 +24,10 @@ def read_from_bin_file(in_path):
                 return data
             except (IOError, OSError) as e:
                 greyLogger.error(e)
-                return None
+                raise
     except (FileNotFoundError, PermissionError, OSError) as e:
         greyLogger.error(e)
+        raise
 
 
 greyLogger = logging.getLogger("greyDevTools")

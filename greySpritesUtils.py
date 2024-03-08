@@ -134,17 +134,19 @@ def compress_sprite_set_empty_removal(sprite_set, skip_initial_frame):
 if __name__ == '__main__':
     greyLogger.debug("start")
     parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument('-e', action='store_true', help="sprite compression remove empty bytes")
-    parser.add_argument('-s', action='store_true', help="skip first frame")
+    # group.add_argument('-e', action='store_true', help="sprite compression remove empty bytes")
     parser.add_argument("path", type=str)
+    parser.add_argument('-s', action='store_true', help="skip first frame")
     parser.add_argument('-d', action='store_true', help="enables debugging")
     args = parser.parse_args()
 
     if args.d:
         greyLogger.setLevel(level=logging.DEBUG)
-    if args.e:
+    try:
         data = utilities.read_from_bin_file(args.path)
+    except (FileNotFoundError, PermissionError, IOError, OSError) as e:
+        greyLogger.error("Couldn't read sprites data {}".format(e))
+    else:
         filename = os.path.splitext(args.path)
         # print(filename)
         # print("Raw sprite set = {}".format(data))
@@ -154,4 +156,4 @@ if __name__ == '__main__':
         # print("len(compressed_sprite_set) = {}".format(len(compressed_sprite_set)))
         output_path = filename[0] + "_compressed.bin"
         utilities.write_to_bin_file(output_path, compressed_sprite_set)
-    greyLogger.debug("end")
+        greyLogger.debug("end")
