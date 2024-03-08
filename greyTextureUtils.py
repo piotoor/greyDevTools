@@ -3,7 +3,6 @@
 from PIL import Image
 import numpy as np
 import os
-import argparse
 import itertools
 DST_EXTENSION = ".bin"
 
@@ -14,7 +13,7 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
     screen_buffer_pixels = []
     color_buffer_pixels = []
 
-    for r in range(0,len(pixels), 2):
+    for r in range(0, len(pixels), 2):
         for c in range(0, len(pixels[r]), 2):
             screen_buffer_pixels.append((pixels[r + 1][c] << 4) | pixels[r + 1][c + 1])
             color_buffer_pixels.append(pixels[r][c + 1])
@@ -163,44 +162,49 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
         ])
 
         if tex_cols == 16 and tex_rows == 13:
-            door_cr_merged_with_rec_vect = merge_two_color_ram_data_segments(bins[0][1], list(itertools.chain(*darkening_luts)) + [0] * 64)
+            door_cr_merged_with_rec_vect = merge_two_color_ram_data_segments(
+                bins[0][1], list(itertools.chain(*darkening_luts)) + [0] * 64)
             save_sr_cr_bins_to_file_common(paths[0], output_path, (bins[0][0], door_cr_merged_with_rec_vect))
         else:
             save_sr_cr_bins_to_file_common(paths[0], output_path, bins[0])
 
-
-
         # common light sr
         cl_sr, cl_cr = bins[1]
         l20l_sr, l20l_cr = bins[7]
-        save_sr_cr_bins_to_file_common(paths[1], output_path, (cl_sr, merge_two_color_ram_data_segments(cl_cr, l20l_cr)))
+        save_sr_cr_bins_to_file_common(paths[1], output_path,
+                                       (cl_sr, merge_two_color_ram_data_segments(cl_cr, l20l_cr)))
 
         # common dark sr
         cd_sr, cd_cr = bins[2]
         l21l_sr, l21l_cr = bins[9]
-        save_sr_cr_bins_to_file_common(paths[2], output_path, (cd_sr, merge_two_color_ram_data_segments(cd_cr, l21l_cr)))
+        save_sr_cr_bins_to_file_common(paths[2], output_path,
+                                       (cd_sr, merge_two_color_ram_data_segments(cd_cr, l21l_cr)))
 
         # level 1 0 light sr
         l10l_sr, l10l_cr = bins[3]
         l30l_sr, l30l_cr = bins[11]
-        save_sr_cr_bins_to_file_common(paths[3], output_path, (l10l_sr, merge_two_color_ram_data_segments(l10l_cr, l30l_cr)))
+        save_sr_cr_bins_to_file_common(paths[3], output_path,
+                                       (l10l_sr, merge_two_color_ram_data_segments(l10l_cr, l30l_cr)))
 
         # level 1 0 dark sr
         l10d_sr, l10d_cr = bins[4]
         l31l_sr, l31l_cr = bins[13]
-        save_sr_cr_bins_to_file_common(paths[4], output_path, (l10d_sr, merge_two_color_ram_data_segments(l10d_cr, l31l_cr)))
+        save_sr_cr_bins_to_file_common(paths[4], output_path,
+                                       (l10d_sr, merge_two_color_ram_data_segments(l10d_cr, l31l_cr)))
 
         # level 1 1 light sr
         l11l_sr, l11l_cr = bins[5]
         l40l_sr, l40l_cr = bins[15]
-        save_sr_cr_bins_to_file_common(paths[5], output_path, (l11l_sr, merge_two_color_ram_data_segments(l11l_cr, l40l_cr)))
+        save_sr_cr_bins_to_file_common(paths[5], output_path,
+                                       (l11l_sr, merge_two_color_ram_data_segments(l11l_cr, l40l_cr)))
 
         # level 1 1 dark sr
         l11d_sr, l11d_cr = bins[6]
         l41l_sr, l41l_cr = bins[17]
-        save_sr_cr_bins_to_file_common(paths[6], output_path, (l11d_sr, merge_two_color_ram_data_segments(l11d_cr, l41l_cr)))
+        save_sr_cr_bins_to_file_common(paths[6], output_path,
+                                       (l11d_sr, merge_two_color_ram_data_segments(l11d_cr, l41l_cr)))
 
-        # add texpack generator here + darkening luts
+        # add tex_pack generator here + darkening luts
         first_tex_start_offset = 3 + 12
         texture_pack = [
             2, 3, 4,
@@ -223,7 +227,7 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
             ((first_tex_start_offset + 208 * 5) >> 8) & 0xff,
         ] + bins[7][0] + bins[9][0] + bins[11][0] + bins[13][0] + bins[15][0] + bins[17][0]
 
-        print(texture_pack, len(texture_pack))
+        # print(texture_pack, len(texture_pack))
         write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
 
 #     3             12                       208 * 6 = 1248         1263
@@ -237,40 +241,17 @@ def generate_darkening_luts(texture_pairs):
     for light, dark in texture_pairs:
         ans.append(generate_texture_dark_transition_map(light, dark))
 
-    for x in ans:
-        print(x)
+    # for x in ans:
+    #     print(x)
     return ans
 
 
+DOOR_STRIPES_NO_OF_COLUMNS = 6
+DOOR_STRIPES_NO_OF_ROWS = 26
+TEXTURE_NO_OF_COLUMNS = 32
+TEXTURE_NO_OF_ROWS = 26
+
+
 if __name__ == '__main__':
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('-F', '--fli',
-    #                     required=False,
-    #                     dest='fli',
-    #                     action='store_true')
-    # parser.add_argument('-q', '--hi-res',
-    #                     required=False,
-    #                     dest='hires',
-    #                     action='store_true')
-    # parser.add_argument('-s', '--single-file',
-    #                     required=False,
-    #                     dest='single',
-    #                     action='store_true')
-    # parser.add_argument('-f', '--full_size',
-    #                     required=False,
-    #                     dest='full_size',
-    #                     action='store_true')
-
-
-
-    # parser.add_argument('path',
-    #                     type=str)
-
-
-
-    # parser.add_argument('-c', '--key-door-columns',
-    #                     required=False,
-    #                     action='store_true')
-    # args = parser.parse_args()
-
-    read_and_convert_to_bin_all_textures("./greyTextureUtilsTestData", 2, 4, 4, 4)
+    read_and_convert_to_bin_all_textures("./greyTextureUtilsTestData", DOOR_STRIPES_NO_OF_COLUMNS,
+                                         DOOR_STRIPES_NO_OF_ROWS, TEXTURE_NO_OF_COLUMNS, TEXTURE_NO_OF_ROWS)
