@@ -4,6 +4,7 @@ from PIL import Image
 import numpy as np
 import os
 import itertools
+import utilities
 DST_EXTENSION = ".bin"
 
 
@@ -28,18 +29,6 @@ def convert_image_to_bin_80x50(input_img, num_of_cols=32, num_of_rows=26):
     return bin_screen_buffer, bin_color_buffer
 
 
-def write_to_bin_file(out_path, data):
-    try:
-        with open(out_path, 'wb') as bin_file:
-            try:
-                # print("Saving {}...".format(sbf))
-                bin_file.write(bytearray(data))
-            except (IOError, OSError):
-                print("Error writing to file")
-    except (FileNotFoundError, PermissionError, OSError) as e:
-        print("Error opening file: ", e)
-
-
 def save_sr_cr_bins_to_file_common(src_path, dst_path, bins):
     head, tail = os.path.split(src_path)
     fn, ext = os.path.splitext(tail)
@@ -48,8 +37,8 @@ def save_sr_cr_bins_to_file_common(src_path, dst_path, bins):
     sbf, cbf = bins
     # print("saving bins: \n {} \n {}".format(sbf, cbf))
 
-    write_to_bin_file(out_file_name_stem + "_screenRam" + DST_EXTENSION, sbf)
-    write_to_bin_file(out_file_name_stem + "_colorRam" + DST_EXTENSION, cbf)
+    utilities.write_to_bin_file(out_file_name_stem + "_screenRam" + DST_EXTENSION, sbf)
+    utilities.write_to_bin_file(out_file_name_stem + "_colorRam" + DST_EXTENSION, cbf)
 
 
 def merge_two_color_ram_data_segments(main, stash):
@@ -228,7 +217,7 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
         ] + bins[7][0] + bins[9][0] + bins[11][0] + bins[13][0] + bins[15][0] + bins[17][0]
 
         # print(texture_pack, len(texture_pack))
-        write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
+        utilities.write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
 
 #     3             12                       208 * 6 = 1248         1263
 #   order | tex starting offsets    | textures data           |
