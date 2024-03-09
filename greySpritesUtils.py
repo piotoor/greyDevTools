@@ -148,12 +148,7 @@ if __name__ == '__main__':
         greyLogger.error("Couldn't read sprites data {}".format(e))
     else:
         filename = os.path.splitext(args.path)
-        # print(filename)
-        # print("Raw sprite set = {}".format(data))
         compressed_sprite_set = compress_sprite_set_empty_removal(data, args.s)
-        # print('[{}]'.format(', '.join(hex(x) for x in compressed_sprite_set)))
-        # print()
-        # print("len(compressed_sprite_set) = {}".format(len(compressed_sprite_set)))
         output_path = filename[0] + "_compressed.bin"
         utilities.write_to_bin_file(output_path, compressed_sprite_set)
         greyLogger.debug("end")

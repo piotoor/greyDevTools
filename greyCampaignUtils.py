@@ -136,30 +136,30 @@ def compress_map_segment(game_map_segment):
     return post_processed
 
 
-if __name__ == '__main__':
-    greyLogger.debug("start")
-    parser = argparse.ArgumentParser()
-
-    group = parser.add_mutually_exclusive_group()
-    # group.add_argument('-c', action='store_true', help="campaign compression")
-    parser.add_argument('-d', action='store_true', help="enables debugging")
-    parser.add_argument("path", type=str)
-    args = parser.parse_args()
-
-    if args.d:
-        greyLogger.setLevel(level=logging.DEBUG)
-    try:
-        data = utilities.read_from_bin_file(args.path)
-    except (FileNotFoundError, PermissionError, IOError, OSError) as e:
-        greyLogger.error("Couldn't read campaign file {}".format(e))
-    else:
-        # print(data)
-        filename = os.path.splitext(args.path)
-        out_path = filename[0] + "_compressed" + filename[1]
-        try:
-            campaign = compress_map(data)
-        except CampaignTooLargeError as e:
-            greyLogger.error("{}".format(e))
-        else:
-            utilities.write_to_bin_file(out_path, campaign)
-            greyLogger.debug("end")
+# if __name__ == '__main__':
+#     greyLogger.debug("start")
+#     parser = argparse.ArgumentParser()
+#
+#     group = parser.add_mutually_exclusive_group()
+#     # group.add_argument('-c', action='store_true', help="campaign compression")
+#     parser.add_argument('-d', action='store_true', help="enables debugging")
+#     parser.add_argument("path", type=str)
+#     args = parser.parse_args()
+#
+#     if args.d:
+#         greyLogger.setLevel(level=logging.DEBUG)
+#     try:
+#         data = utilities.read_from_bin_file(args.path)
+#     except (FileNotFoundError, PermissionError, IOError, OSError) as e:
+#         greyLogger.error("Couldn't read campaign file {}".format(e))
+#     else:
+#         # print(data)
+#         filename = os.path.splitext(args.path)
+#         out_path = filename[0] + "_compressed" + filename[1]
+#         try:
+#             campaign = compress_map(data)
+#         except CampaignTooLargeError as e:
+#             greyLogger.error("{}".format(e))
+#         else:
+#             utilities.write_to_bin_file(out_path, campaign)
+#             greyLogger.debug("end")

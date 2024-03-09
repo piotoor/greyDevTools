@@ -158,79 +158,84 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
         # door stripes sr & cr
         save_sr_cr_bins_to_file_common(door_stripes_path, output_path, door_stripes_bin)
         # door sr
-        darkening_luts = generate_darkening_luts([
-            (bins[i], bins[i + 1]) for i in range(1, 18, 2)
-        ])
+        try:
+            darkening_luts = generate_darkening_luts([
+                (bins[i], bins[i + 1]) for i in range(1, 18, 2)
+            ])
+        except RuntimeError as e:
+            greyLogger.error("Error: ", e)
 
-        if tex_cols == 16 and tex_rows == 13:
-            door_cr_merged_with_rec_vect = merge_two_color_ram_data_segments(
-                bins[0][1], list(itertools.chain(*darkening_luts)) + [0] * 64)
-            save_sr_cr_bins_to_file_common(paths[0], output_path, (bins[0][0], door_cr_merged_with_rec_vect))
         else:
-            save_sr_cr_bins_to_file_common(paths[0], output_path, bins[0])
 
-        # common light sr
-        cl_sr, cl_cr = bins[1]
-        l20l_sr, l20l_cr = bins[7]
-        save_sr_cr_bins_to_file_common(paths[1], output_path,
-                                       (cl_sr, merge_two_color_ram_data_segments(cl_cr, l20l_cr)))
+            if tex_cols == 16 and tex_rows == 13:
+                door_cr_merged_with_rec_vect = merge_two_color_ram_data_segments(
+                    bins[0][1], list(itertools.chain(*darkening_luts)) + [0] * 64)
+                save_sr_cr_bins_to_file_common(paths[0], output_path, (bins[0][0], door_cr_merged_with_rec_vect))
+            else:
+                save_sr_cr_bins_to_file_common(paths[0], output_path, bins[0])
 
-        # common dark sr
-        cd_sr, cd_cr = bins[2]
-        l21l_sr, l21l_cr = bins[9]
-        save_sr_cr_bins_to_file_common(paths[2], output_path,
-                                       (cd_sr, merge_two_color_ram_data_segments(cd_cr, l21l_cr)))
+            # common light sr
+            cl_sr, cl_cr = bins[1]
+            l20l_sr, l20l_cr = bins[7]
+            save_sr_cr_bins_to_file_common(paths[1], output_path,
+                                           (cl_sr, merge_two_color_ram_data_segments(cl_cr, l20l_cr)))
 
-        # level 1 0 light sr
-        l10l_sr, l10l_cr = bins[3]
-        l30l_sr, l30l_cr = bins[11]
-        save_sr_cr_bins_to_file_common(paths[3], output_path,
-                                       (l10l_sr, merge_two_color_ram_data_segments(l10l_cr, l30l_cr)))
+            # common dark sr
+            cd_sr, cd_cr = bins[2]
+            l21l_sr, l21l_cr = bins[9]
+            save_sr_cr_bins_to_file_common(paths[2], output_path,
+                                           (cd_sr, merge_two_color_ram_data_segments(cd_cr, l21l_cr)))
 
-        # level 1 0 dark sr
-        l10d_sr, l10d_cr = bins[4]
-        l31l_sr, l31l_cr = bins[13]
-        save_sr_cr_bins_to_file_common(paths[4], output_path,
-                                       (l10d_sr, merge_two_color_ram_data_segments(l10d_cr, l31l_cr)))
+            # level 1 0 light sr
+            l10l_sr, l10l_cr = bins[3]
+            l30l_sr, l30l_cr = bins[11]
+            save_sr_cr_bins_to_file_common(paths[3], output_path,
+                                           (l10l_sr, merge_two_color_ram_data_segments(l10l_cr, l30l_cr)))
 
-        # level 1 1 light sr
-        l11l_sr, l11l_cr = bins[5]
-        l40l_sr, l40l_cr = bins[15]
-        save_sr_cr_bins_to_file_common(paths[5], output_path,
-                                       (l11l_sr, merge_two_color_ram_data_segments(l11l_cr, l40l_cr)))
+            # level 1 0 dark sr
+            l10d_sr, l10d_cr = bins[4]
+            l31l_sr, l31l_cr = bins[13]
+            save_sr_cr_bins_to_file_common(paths[4], output_path,
+                                           (l10d_sr, merge_two_color_ram_data_segments(l10d_cr, l31l_cr)))
 
-        # level 1 1 dark sr
-        l11d_sr, l11d_cr = bins[6]
-        l41l_sr, l41l_cr = bins[17]
-        save_sr_cr_bins_to_file_common(paths[6], output_path,
-                                       (l11d_sr, merge_two_color_ram_data_segments(l11d_cr, l41l_cr)))
+            # level 1 1 light sr
+            l11l_sr, l11l_cr = bins[5]
+            l40l_sr, l40l_cr = bins[15]
+            save_sr_cr_bins_to_file_common(paths[5], output_path,
+                                           (l11l_sr, merge_two_color_ram_data_segments(l11l_cr, l40l_cr)))
 
-        # add tex_pack generator here + darkening luts
-        first_tex_start_offset = 3 + 12
-        texture_pack = [
-            2, 3, 4,
-            first_tex_start_offset & 0xff,
-            (first_tex_start_offset >> 8) & 0xff,
+            # level 1 1 dark sr
+            l11d_sr, l11d_cr = bins[6]
+            l41l_sr, l41l_cr = bins[17]
+            save_sr_cr_bins_to_file_common(paths[6], output_path,
+                                           (l11d_sr, merge_two_color_ram_data_segments(l11d_cr, l41l_cr)))
 
-            (first_tex_start_offset + 208) & 0xff,
-            ((first_tex_start_offset + 208) >> 8) & 0xff,
+            # add tex_pack generator here + darkening luts
+            first_tex_start_offset = 3 + 12
+            texture_pack = [
+                2, 3, 4,
+                first_tex_start_offset & 0xff,
+                (first_tex_start_offset >> 8) & 0xff,
 
-            (first_tex_start_offset + 208 * 2) & 0xff,
-            ((first_tex_start_offset + 208 * 2) >> 8) & 0xff,
+                (first_tex_start_offset + 208) & 0xff,
+                ((first_tex_start_offset + 208) >> 8) & 0xff,
 
-            (first_tex_start_offset + 208 * 3) & 0xff,
-            ((first_tex_start_offset + 208 * 3) >> 8) & 0xff,
+                (first_tex_start_offset + 208 * 2) & 0xff,
+                ((first_tex_start_offset + 208 * 2) >> 8) & 0xff,
 
-            (first_tex_start_offset + 208 * 4) & 0xff,
-            ((first_tex_start_offset + 208 * 4) >> 8) & 0xff,
+                (first_tex_start_offset + 208 * 3) & 0xff,
+                ((first_tex_start_offset + 208 * 3) >> 8) & 0xff,
 
-            (first_tex_start_offset + 208 * 5) & 0xff,
-            ((first_tex_start_offset + 208 * 5) >> 8) & 0xff,
-        ] + bins[7][0] + bins[9][0] + bins[11][0] + bins[13][0] + bins[15][0] + bins[17][0]
+                (first_tex_start_offset + 208 * 4) & 0xff,
+                ((first_tex_start_offset + 208 * 4) >> 8) & 0xff,
 
-        # print(texture_pack, len(texture_pack))
-        utilities.write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
-        greyLogger.debug("end")
+                (first_tex_start_offset + 208 * 5) & 0xff,
+                ((first_tex_start_offset + 208 * 5) >> 8) & 0xff,
+            ] + bins[7][0] + bins[9][0] + bins[11][0] + bins[13][0] + bins[15][0] + bins[17][0]
+
+            # print(texture_pack, len(texture_pack))
+            utilities.write_to_bin_file(os.path.join(output_path, "texturePack" + DST_EXTENSION), texture_pack)
+            greyLogger.debug("end")
 
 #     3             12                       208 * 6 = 1248         1263
 #   order | tex starting offsets    | textures data           |
@@ -241,8 +246,11 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
 def generate_darkening_luts(texture_pairs):
     greyLogger.debug("start")
     ans = []
+    i = 0
     for light, dark in texture_pairs:
+        greyLogger.debug("generate_texture_dark_transition_map for {}".format(i))
         ans.append(generate_texture_dark_transition_map(light, dark))
+        i += 1
 
     greyLogger.debug("end")
     return ans
@@ -254,14 +262,15 @@ TEXTURE_NO_OF_COLUMNS = 32
 TEXTURE_NO_OF_ROWS = 26
 
 
-if __name__ == '__main__':
-    greyLogger.debug("start")
-    parser = argparse.ArgumentParser()
-    group = parser.add_mutually_exclusive_group()
-    parser.add_argument('-d', action='store_true', help="enables debugging")
-    args = parser.parse_args()
-    if args.d:
-        greyLogger.setLevel(level=logging.DEBUG)
-    read_and_convert_to_bin_all_textures("./greyTextureUtilsTestData", DOOR_STRIPES_NO_OF_COLUMNS,
-                                         DOOR_STRIPES_NO_OF_ROWS, TEXTURE_NO_OF_COLUMNS, TEXTURE_NO_OF_ROWS)
-    greyLogger.debug("end")
+# if __name__ == '__main__':
+#     greyLogger.debug("start")
+#     parser = argparse.ArgumentParser()
+#     group = parser.add_mutually_exclusive_group()
+#     parser.add_argument('-d', action='store_true', help="enables debugging")
+#     parser.add_argument("path", type=str)
+#     args = parser.parse_args()
+#     if args.d:
+#         greyLogger.setLevel(level=logging.DEBUG)
+#     read_and_convert_to_bin_all_textures(args.path , DOOR_STRIPES_NO_OF_COLUMNS,
+#                                          DOOR_STRIPES_NO_OF_ROWS, TEXTURE_NO_OF_COLUMNS, TEXTURE_NO_OF_ROWS)
+#     greyLogger.debug("end")
