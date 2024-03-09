@@ -15,7 +15,10 @@ import logging
 # LH - LEVEL_DATA upper bound (for easy calculations
 
 
-MAX_CAMPAIGN_FILE_SIZE = 2000
+TEXTURE_PACK_SIZE = 1263
+BARREL_UP_SPRITES_SIZE = 228
+MX_OVER_COS_X_16_LUT_SIZE = 792
+MAX_CAMPAIGN_FILE_SIZE = 4096 - TEXTURE_PACK_SIZE - BARREL_UP_SPRITES_SIZE - MX_OVER_COS_X_16_LUT_SIZE
 
 
 class CampaignTooLargeError(Exception):
@@ -27,6 +30,7 @@ class CampaignTooLargeError(Exception):
 
 def compress_map(game_map):
     greyLogger.debug("start")
+    greyLogger.debug("MAX_CAMPAIGN_FILE_SIZE = {}".format(MAX_CAMPAIGN_FILE_SIZE))
     # campaign = []
     compressed_segments = []
 

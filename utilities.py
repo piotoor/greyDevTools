@@ -33,6 +33,6 @@ def read_from_bin_file(in_path):
 greyLogger = logging.getLogger("greyDevTools")
 greyLogger.setLevel(level=logging.ERROR)
 fh = logging.StreamHandler()
-fh_formatter = logging.Formatter('%(asctime)s %(levelname)6s %(lineno)5d:%(filename)s%(funcName)30s() - %(message)s')
+fh_formatter = logging.Formatter('%(asctime)s %(levelname)6s %(lineno)5d:%(filename)s%(funcName)45s() - %(message)s')
 fh.setFormatter(fh_formatter)
 greyLogger.addHandler(fh)
