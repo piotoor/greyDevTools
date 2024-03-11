@@ -7,7 +7,7 @@ from utilities import greyLogger
 import logging
 
 # campaign format:
-# N SL SH LHLHLH LHLHLH LHLHLH LH LEVEL_DATA LDLDLD LDLDLD LDLDLD LDLDLD
+# N SL SH LHLHLH LHLHLH LHLHLH LHLHLH LH LEVEL_DATA LDLDLD LDLDLD LDLDLD LDLDLD
 #
 # N - num of levels
 # SL, SH - low and high bytes of campaign size in bytes
@@ -107,8 +107,8 @@ def compress_map(game_map):
 
     size_l_idx = 1
     size_h_idx = 2
-    campaign_data[size_l_idx] = len(campaign_data) & 0xff
-    campaign_data[size_h_idx] = len(campaign_data) >> 8
+    campaign_data[size_l_idx] = (len(campaign_data) + len(single_color_filled_textures)) & 0xff
+    campaign_data[size_h_idx] = (len(campaign_data) + len(single_color_filled_textures)) >> 8
 
     campaign_normalized = list(map(lambda x: 256 + x if x < 0 else x, campaign_data)) + single_color_filled_textures
     greyLogger.debug("single_color_filled_textures = {}".format(single_color_filled_textures))
