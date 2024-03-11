@@ -167,7 +167,9 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
 
         else:
 
-            if tex_cols == 16 and tex_rows == 13:
+            greyLogger.debug("tex_cols = {}, tex_rows = {}".format(tex_cols, tex_rows))
+            if tex_cols == 32 and tex_rows == 26:
+                greyLogger.debug("merging darkening vectors with doors")
                 door_cr_merged_with_rec_vect = merge_two_color_ram_data_segments(
                     bins[0][1], list(itertools.chain(*darkening_luts)) + [0] * 64)
                 save_sr_cr_bins_to_file_common(paths[0], output_path, (bins[0][0], door_cr_merged_with_rec_vect))
