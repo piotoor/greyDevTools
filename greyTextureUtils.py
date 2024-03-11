@@ -251,7 +251,9 @@ def generate_darkening_luts(texture_pairs):
     i = 0
     for light, dark in texture_pairs:
         greyLogger.debug("generate_texture_dark_transition_map for {}".format(i))
-        ans.append(generate_texture_dark_transition_map(light, dark))
+        lut = generate_texture_dark_transition_map(light, dark)
+        ans.append(lut)
+        greyLogger.debug("darkeningLut[{}] = {}".format(i, lut))
         i += 1
 
     greyLogger.debug("end")
