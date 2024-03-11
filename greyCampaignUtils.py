@@ -7,14 +7,18 @@ from utilities import greyLogger
 import logging
 
 # campaign format:
-# N SL SH LHLHLH LHLHLH LHLHLH LH LEVEL_DATA
+# N SL SH LHLHLH LHLHLH LHLHLH LH LEVEL_DATA LDLDLD LDLDLD LDLDLD LDLDLD
 #
 # N - num of levels
 # SL, SH - low and high bytes of campaign size in bytes
 # LHLHLH - level segments starting addresses
 # LH - LEVEL_DATA upper bound (for easy calculations
+#
+# LD - single-color-filled texture colors
+# L - light, D - dark, every level has 3, one for each segment
 
 
+MAX_NUM_OF_SEGMENTS_PER_CAMPAIGN = 15   # includes potential boss level
 TEXTURE_PACK_SIZE = 1263
 BARREL_UP_SPRITES_SIZE = 228
 MX_OVER_COS_X_16_LUT_SIZE = 792
@@ -41,10 +45,12 @@ def compress_map(game_map):
     full_level_size = 256 * 3 + 16
 
     level_idx = 0
+    single_color_filled_textures = []
     while parsed_size < map_size:
         # print("level {}".format(level_idx))
         curr_level = game_map_list[parsed_size: parsed_size + full_level_size]
-        # level_header = curr_level[0:16]     # for now ignored. reserved for texture set data etc.
+        level_header = curr_level[0:16]     # for now ignored. reserved for texture set data etc.
+        single_color_filled_textures += level_header[0:6]
         raw_level = curr_level[16:]
 
         level_segments = []
@@ -104,8 +110,8 @@ def compress_map(game_map):
     campaign_data[size_l_idx] = len(campaign_data) & 0xff
     campaign_data[size_h_idx] = len(campaign_data) >> 8
 
-    campaign_normalized = list(map(lambda x: 256 + x if x < 0 else x, campaign_data))
-
+    campaign_normalized = list(map(lambda x: 256 + x if x < 0 else x, campaign_data)) + single_color_filled_textures
+    greyLogger.debug("single_color_filled_textures = {}".format(single_color_filled_textures))
     campaign_size = len(campaign_normalized)
     greyLogger.debug("campaign = {}".format(campaign_normalized))
     greyLogger.debug("campaign_size = {0} original_size = {1}, compression_ratio = {2:.2f}".format(
