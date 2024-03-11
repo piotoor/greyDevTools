@@ -71,7 +71,7 @@ def generate_texture_dark_transition_map(light, dark):
 
         debug[0].append((lo_nibble_light, lo_nibble_dark))
         debug[1].append((hi_nibble_light, hi_nibble_dark))
-        debug[2].append((light_cr, dark_cr))
+        debug[2].append((light_cr[i], dark_cr[i]))
 
         if ans[lo_nibble_light] == lo_nibble_light:
             ans[lo_nibble_light] = lo_nibble_dark
