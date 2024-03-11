@@ -5,7 +5,7 @@ import logging
 import utilities
 from utilities import greyLogger
 import os
-
+import argparse
 
 def process_textures():
     greyTextureUtils.read_and_convert_to_bin_all_textures(os.path.join("..", "textures"),
@@ -46,8 +46,14 @@ def process_sprites(path, skip_first_frame=False):
 
 
 if __name__ == '__main__':
-    greyLogger.setLevel(level=logging.DEBUG)
     greyLogger.debug("start")
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-d', action='store_true', help="enables debugging")
+    args = parser.parse_args()
+
+    if args.d:
+        greyLogger.setLevel(level=logging.DEBUG)
+
     process_textures()
     process_campaign()
     process_sprites(os.path.join("..", "sprites", "barrelDown.spd"))
