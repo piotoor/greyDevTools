@@ -7,7 +7,7 @@ from utilities import greyLogger
 import logging
 
 # campaign format:
-# N SL SH LHLHLH LHLHLH LHLHLH LHLHLH LH LEVEL_DATA LDLDLD LDLDLD LDLDLD LDLDLD
+# N SL SH LH LHLHLH LHLHLH LHLHLH LHLHLH LEVEL_DATA LDLDLD LDLDLD LDLDLD LDLDLD
 #
 # N - num of levels
 # SL, SH - low and high bytes of campaign size in bytes
@@ -84,8 +84,8 @@ def compress_map(game_map):
                      + [-1 for _ in range(num_of_levels * num_of_segment_addr_bytes
                         + num_of_campaign_upper_bound_addr_bytes)])  # segment start addr. -1 means no seg
 
-    seg_l_idx = 3
-    seg_h_idx = 4
+    seg_l_idx = 5
+    seg_h_idx = 6
     greyLogger.debug("Compressed segments:")
     for seg in compressed_segments:
         greyLogger.debug("\tseg = {}".format(seg))
@@ -101,8 +101,11 @@ def compress_map(game_map):
             start_address += len(seg)
         seg_l_idx += 2
         seg_h_idx += 2
-    campaign_data[seg_l_idx] = start_address & 0xff      # campaign upper bound
-    campaign_data[seg_h_idx] = start_address >> 8        # campaign upper bound
+
+    upper_bound_l_idx = 3
+    upper_bound_h_idx = 4
+    campaign_data[upper_bound_l_idx] = start_address & 0xff      # campaign upper bound
+    campaign_data[upper_bound_h_idx] = start_address >> 8        # campaign upper bound
     greyLogger.debug("\tcampaign upperBound L: {:02x} H: {:02x}".format(start_address & 0xff, start_address >> 8))
 
     size_l_idx = 1
