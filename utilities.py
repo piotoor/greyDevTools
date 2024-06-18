@@ -1,10 +1,11 @@
 import logging
-
+import os
 
 def write_to_bin_file(out_path, data):
     greyLogger.debug("start")
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
     try:
-        with open(out_path, 'wb') as bin_file:
+        with open(out_path, 'w+b') as bin_file:
             try:
                 # print("Saving {}...".format(sbf))
                 bin_file.write(bytearray(data))
