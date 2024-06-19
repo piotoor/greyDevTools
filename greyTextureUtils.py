@@ -173,7 +173,7 @@ def read_and_convert_to_bin_all_textures(path, stripes_cols, stripes_rows, tex_c
         # door sr
         try:
             darkening_luts = generate_darkening_luts([
-                (bins[i], bins[i + 1]) for i in range(1, 18, 2)
+                (bins[i], bins[i + 1], paths[i]) for i in range(1, 18, 2)
             ])
         except RuntimeError as e:
             greyLogger.error("Error: ", e)
@@ -262,8 +262,8 @@ def generate_darkening_luts(texture_pairs):
     greyLogger.debug("start")
     ans = []
     i = 0
-    for light, dark in texture_pairs:
-        greyLogger.debug("generate_texture_dark_transition_map for {}".format(i))
+    for light, dark, path in texture_pairs:
+        greyLogger.debug("generate_texture_dark_transition_map for {}".format(path))
         lut = generate_texture_dark_transition_map(light, dark)
         ans.append(lut)
         greyLogger.debug("darkeningLut[{}] = {}".format(i, lut))
