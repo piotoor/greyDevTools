@@ -72,7 +72,7 @@ def generate_texture_dark_transition_map(light, dark):
         debug[0].append((lo_nibble_light, lo_nibble_dark))
         debug[1].append((hi_nibble_light, hi_nibble_dark))
         debug[2].append((light_cr[i], dark_cr[i]))
-        greyLogger.debug("pixelId = {} {} -> {}   {} -> {}   {} -> {}".format(i, lo_nibble_light, lo_nibble_dark,
+        greyLogger.debug("pixelId = {} sr lo {} -> {}   sr hi {} -> {}   cr {} -> {}".format(i, lo_nibble_light, lo_nibble_dark,
                                                                               hi_nibble_light, hi_nibble_dark,
                                                                               light_cr[i], dark_cr[i]))
 
