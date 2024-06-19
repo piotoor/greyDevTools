@@ -50,7 +50,7 @@ def compress_map(game_map):
         # print("level {}".format(level_idx))
         curr_level = game_map_list[parsed_size: parsed_size + full_level_size]
         level_header = curr_level[0:16]     # for now ignored. reserved for texture set data etc.
-        single_color_filled_textures += level_header[0:6]
+        single_color_filled_textures += [x if x < 16 else 0 for x in level_header[0:6]]
         raw_level = curr_level[16:]
 
         level_segments = []
