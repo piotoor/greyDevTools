@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
     process_textures()
     process_campaign()
-    process_sprites(os.path.join("..", "sprites", "barrelDown.spd"))
-    process_sprites(os.path.join("..", "sprites", "barrelUp.spd"), True)
-    process_sprites(os.path.join("..", "sprites", "mediumEnemy.spd"))
+    process_sprites(os.path.join("..", "sprites", "barrelDown.bin"))
+    process_sprites(os.path.join("..", "sprites", "barrelUp.bin"), True)
+    process_sprites(os.path.join("..", "sprites", "mediumEnemy.bin"))
     greyLogger.debug("end")

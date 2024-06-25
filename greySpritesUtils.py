@@ -29,7 +29,7 @@ scaledFrameDataResolution = (
 
 def compress_sprite_set_empty_removal(sprite_set, skip_initial_frame):
     greyLogger.debug("start")
-    raw_sprite_set = list(sprite_set[3:])
+    raw_sprite_set = list(sprite_set)
     sprite_set_size = len(raw_sprite_set)
     parsed_size = 64 if skip_initial_frame else 0
     frame_id = 1 if skip_initial_frame else 0
