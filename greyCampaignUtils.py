@@ -21,8 +21,8 @@ import logging
 MAX_NUM_OF_SEGMENTS_PER_CAMPAIGN = 15   # includes potential boss level
 TEXTURE_PACK_SIZE = 1263
 BARREL_UP_SPRITES_SIZE = 228
-MX_OVER_COS_X_16_LUT_SIZE = 396
-GAME_MAP_OBJECTS_SIZE = 300 - 300   # temporary space-saving workaround. Moved gameMapObjects, gameMapObjects_1 and gameMapObjects_2 out of IO
+MX_OVER_COS_X_16_LUT_SIZE = 396 - 66    # mxOverCos_16_x12 temporarily moved to regular RAM
+GAME_MAP_OBJECTS_SIZE = 300 - 300       # temporary space-saving workaround. Moved gameMapObjects, gameMapObjects_1 and gameMapObjects_2 out of IO
 MAX_CAMPAIGN_FILE_SIZE = 4096 - TEXTURE_PACK_SIZE - BARREL_UP_SPRITES_SIZE - MX_OVER_COS_X_16_LUT_SIZE - GAME_MAP_OBJECTS_SIZE
 
 
